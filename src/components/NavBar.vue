@@ -60,10 +60,21 @@ nav {
 
 .search input {
   padding: 5px;
+  border-radius: 5px;
+  width: 300px;
 }
 
 .account {
   display: flex;
   gap: 15px;
+}
+
+.account a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.account a:hover {
+  text-decoration: underline;
 }
 </style>
