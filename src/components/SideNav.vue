@@ -45,11 +45,6 @@ export default defineComponent({
         <!-- Material Icon for new folder -->
         New Folder
       </button>
-      <button @click="addTag">
-        <span class="material-icons button-icon">local_offer</span>
-        <!-- Material Icon for new tag -->
-        New Tag
-      </button>
     </div>
 
     <div class="folders">
@@ -64,41 +59,20 @@ export default defineComponent({
         />
       </ul>
     </div>
-
-    <div class="tags">
-      <h3>Tags</h3>
-      <ul>
-        <li v-for="tag in tags" :key="tag">{{ tag }}</li>
-      </ul>
-    </div>
   </aside>
 </template>
 
 <style scoped>
 .side-nav {
   width: 250px;
-  background-color: var(--secondary-bg);
+  background-color: var(--primary-bg);
   padding: 20px;
   color: var(--primary-text);
 }
 
 .quick-actions,
-.folders,
-.tags {
+.folders {
   margin-bottom: 20px;
-}
-
-.quick-actions button {
-  background-color: var(--accent-1);
-  color: white;
-  padding: 5px 10px;
-  margin-right: 5px;
-  cursor: pointer;
-  border-radius: 10px;
-}
-
-.quick-actions button:hover {
-  background-color: var(--accent-2);
 }
 
 .button-icon {
@@ -116,5 +90,33 @@ li {
   list-style: none;
   margin-bottom: 5px;
   cursor: pointer;
+}
+
+ul {
+  padding-left: 0;
+}
+@media (max-width: 768px) {
+  .side-nav {
+    position: fixed;
+    width: 250px;
+    height: 100vh;
+    overflow-y: auto;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+    transform: translateX(-100%);
+  }
+  .side-nav.show {
+    transform: translateX(0);
+  }
+  .quick-actions button {
+    padding: 3px 7px;
+    font-size: 12px;
+  }
+
+  .quick-actions,
+  .folders,
+  .tags {
+    margin-bottom: 10px;
+  }
 }
 </style>

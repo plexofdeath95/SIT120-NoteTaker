@@ -5,15 +5,21 @@ export default defineComponent({
   name: 'NavBar',
   setup() {
     const searchQuery = ref('')
+    const showSideNav = ref(false)
 
     function performSearch() {
-      // Perform search logic here
       console.log(`Searching for ${searchQuery.value}`)
+    }
+
+    function toggleSideNav() {
+      showSideNav.value = !showSideNav.value
     }
 
     return {
       searchQuery,
-      performSearch
+      performSearch,
+      showSideNav,
+      toggleSideNav
     }
   }
 })
@@ -22,10 +28,11 @@ export default defineComponent({
 <template>
   <header>
     <nav>
-      <div class="logo">
-        <router-link to="/">NoteSphere</router-link>
+      <div class="left-actions">
+        <button class="hamburger-button" @click="$emit('toggleSideNav')">
+          <span class="material-icons">menu</span>
+        </button>
       </div>
-
       <div class="search">
         <input
           type="text"
@@ -34,11 +41,7 @@ export default defineComponent({
           @keydown.enter="performSearch"
         />
       </div>
-
-      <div class="account">
-        <router-link to="/profile">Profile</router-link>
-        <router-link to="/settings">Settings</router-link>
-      </div>
+      <div class="right-actions"></div>
     </nav>
   </header>
 </template>
@@ -48,33 +51,48 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #003366;
+  background-color: var(--primary-bg);
   color: #fff;
   height: 60px;
   padding: 0 20px;
 }
 
-.logo {
-  font-size: 1.5em;
+.left-actions,
+.right-actions {
+  width: 50px;
+}
+
+.search {
+  margin: 0 auto;
 }
 
 .search input {
   padding: 5px;
   border-radius: 5px;
-  width: 300px;
+  min-width: 300px;
+  background-color: var(--secondary-bg);
+  color: var(--primary-text);
+  border: none;
 }
 
-.account {
-  display: flex;
-  gap: 15px;
-}
-
-.account a {
+.hamburger-button {
+  background: none;
+  border: none;
+  font-size: 2em;
   color: #fff;
-  text-decoration: none;
+  cursor: pointer;
 }
 
-.account a:hover {
-  text-decoration: underline;
+@media (max-width: 768px) {
+  .search {
+    margin: 0;
+  }
+  .hamburger-button {
+    display: inline;
+  }
+  .left-actions,
+  .right-actions {
+    width: auto;
+  }
 }
 </style>

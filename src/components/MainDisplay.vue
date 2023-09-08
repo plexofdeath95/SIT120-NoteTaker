@@ -29,12 +29,18 @@ export default defineComponent({
 
 <template>
   <div class="main-display">
-    <div class="note-header">
-      <input type="text" v-model="noteTitle" placeholder="Note Title" />
-      <button @click="saveNote">Save</button>
-      <button @click="deleteNote">Delete</button>
+    <div class="inner-display">
+      <div class="note-header">
+        <input type="text" v-model="noteTitle" placeholder="Note Title" />
+        <button @click="saveNote">
+          <span class="material-icons button-icon">save</span>
+        </button>
+        <button @click="deleteNote">
+          <span class="material-icons button-icon">delete</span>
+        </button>
+      </div>
+      <textarea class="note-content" v-model="noteContent" placeholder="Your note..."></textarea>
     </div>
-    <textarea class="note-content" v-model="noteContent" placeholder="Your note..."></textarea>
   </div>
 </template>
 
@@ -46,6 +52,9 @@ export default defineComponent({
   margin-left: 20px;
 }
 
+.inner-display {
+  padding: 20px;
+}
 .note-header {
   display: flex;
   justify-content: space-between;
@@ -59,8 +68,15 @@ export default defineComponent({
   font-size: 1.2em;
   padding: 5px;
   margin-right: 20px;
+  background-color: var(--secondary-bg);
+  color: var(--primary-text);
+  border: none;
 }
 
+.button-icon {
+  vertical-align: middle;
+  margin-right: 5px;
+}
 .note-content {
   width: 95%;
   height: 85vh;
@@ -68,5 +84,24 @@ export default defineComponent({
   font-size: 1em;
   line-height: 1.6;
   border: none;
+  background-color: var(--secondary-bg);
+  color: var(--primary-text);
+}
+
+@media (max-width: 768px) {
+  .main-display {
+    margin-top: 10px;
+    margin-left: 10px;
+  }
+
+  .note-header input {
+    font-size: 16px;
+    margin-right: 10px;
+  }
+
+  .note-content {
+    min-height: 75vh;
+    padding-bottom: 100px; /* Or some suitable value */
+  }
 }
 </style>

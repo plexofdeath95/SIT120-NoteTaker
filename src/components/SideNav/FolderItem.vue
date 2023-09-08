@@ -24,16 +24,14 @@ export default defineComponent({
 <template>
   <li @click="selectFolder">
     <span class="material-icons folder-icon">
-      <!-- Use 'folder_open' if selected, otherwise 'folder' -->
       {{ isSelected ? 'folder_open' : 'folder' }}
     </span>
+
     {{ name }}
-    <span v-if="isSelected" class="material-icons selected-icon">check_circle</span>
   </li>
 </template>
 
 <style scoped>
-/* Your styles here, you can copy the ones you used for folder icons and selected icons */
 .folder-icon {
   margin-right: 8px;
   vertical-align: middle;
@@ -43,5 +41,11 @@ export default defineComponent({
   margin-left: 8px;
   vertical-align: middle;
   color: green;
+}
+
+@media (max-width: 768px) {
+  .main-layout.hide-sidenav {
+    margin-left: 0;
+  }
 }
 </style>
