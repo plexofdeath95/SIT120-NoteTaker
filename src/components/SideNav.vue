@@ -114,7 +114,7 @@ export default defineComponent({
 <template>
   <aside class="side-nav">
     <div class="quick-actions">
-      <button @click="addFolder">
+      <button @click="() => {addFolder(); $emit('rerender')}">
         <span class="material-icons button-icon">create_new_folder</span>
         <!-- Material Icon for new folder -->
         New Folder

@@ -77,6 +77,7 @@ watchEffect(() => {
         :user="user"
         @selectNote="handleNoteSelect"
         @refreshMain="handleNoteSelect"
+        @rerender="rerenderView"
       />
       </Suspense>
       <MainDisplay v-if="!refreshMainView" :note="selectedNote" @rerender="rerenderView" />
