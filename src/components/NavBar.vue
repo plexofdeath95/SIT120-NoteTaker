@@ -1,8 +1,14 @@
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
-
+import { defineComponent, ref, type PropType } from 'vue'
+import type {iUser}from '../firebase/firestore/users'
 export default defineComponent({
   name: 'NavBar',
+  props: {
+    user: {
+      type: Object as PropType<iUser> || undefined,
+      required: false
+    }
+  },
   setup() {
     const searchQuery = ref('')
     const showSideNav = ref(false)
@@ -41,7 +47,9 @@ export default defineComponent({
           @keydown.enter="performSearch"
         />
       </div>
-      <div class="right-actions"></div>
+      <div class="right-actions">
+        Hello {{ user?.username }}
+      </div>
     </nav>
   </header>
 </template>
@@ -55,11 +63,6 @@ nav {
   color: #fff;
   height: 60px;
   padding: 0 20px;
-}
-
-.left-actions,
-.right-actions {
-  width: 50px;
 }
 
 .search {

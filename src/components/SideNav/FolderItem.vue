@@ -1,33 +1,55 @@
 <script lang="ts">
-import { defineComponent, PropType } from 'vue'
+import { defineComponent, ref, type PropType, computed } from 'vue'
+import type { iFolder, iNote } from '../../firebase/firestore/notes'
 
 export default defineComponent({
   name: 'FolderItem',
   props: {
-    name: {
-      type: String,
+    folder: {
+      type: Object as PropType<iFolder> || undefined,
       required: true
+    },
+    notes: {
+      type: Array as PropType<iNote[]> || undefined,
+      required: false
     },
     isSelected: {
       type: Boolean,
-      default: false
+      required: false
     }
   },
-  methods: {
-    selectFolder() {
-      this.$emit('select', this.name)
+  setup(props)
+  {
+    const folderOpen = ref(false)
+    const currFolder = ref(props.folder)
+    const folderSelected = ref(false)
+    function toggleFolderIcon() {
+      folderOpen.value = !folderOpen.value
+    }
+
+    function selectFolder() {
+      localStorage.setItem('selectedFolder', JSON.stringify(props.folder.id))
+    }
+
+    return {
+      folderOpen,
+      folderSelected,
+      currFolder,
+      toggleFolderIcon,
+      selectFolder
     }
   }
 })
 </script>
 
 <template>
-  <li @click="selectFolder">
-    <span class="material-icons folder-icon">
-      {{ isSelected ? 'folder_open' : 'folder' }}
+  <li @click=" ()=> {selectFolder() 
+    $emit('select', currFolder)}" :class="{selected: isSelected}">
+    <span class="material-icons folder-icon" @click="() => {toggleFolderIcon() 
+      }">
+      {{ folderOpen ? 'folder_open' : 'folder' }}
     </span>
-
-    {{ name }}
+    {{ folder.name }}
   </li>
 </template>
 
@@ -40,6 +62,10 @@ export default defineComponent({
 .selected-icon {
   margin-left: 8px;
   vertical-align: middle;
+  color: green;
+}
+
+.selected {
   color: green;
 }
 
