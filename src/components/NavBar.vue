@@ -1,12 +1,18 @@
 <script lang="ts">
 import { defineComponent, ref, type PropType } from 'vue'
 import type {iUser}from '../firebase/firestore/users'
+import { RouterLink } from 'vue-router'
 export default defineComponent({
   name: 'NavBar',
   props: {
     user: {
       type: Object as PropType<iUser> || undefined,
       required: false
+    },
+    hideHam: {
+      type: Boolean,
+      required: false,
+      default: false
     }
   },
   setup() {
@@ -35,9 +41,11 @@ export default defineComponent({
   <header>
     <nav>
       <div class="left-actions">
-        <button class="hamburger-button" @click="$emit('toggleSideNav')">
+        <button class="hamburger-button" @click="$emit('toggleSideNav')" v-if="!hideHam">
           <span class="material-icons">menu</span>
         </button>
+        <RouterLink to="/"><a href="">Home</a></RouterLink> 
+        <RouterLink to="/about"><a href="">About</a></RouterLink> 
       </div>
       <div class="search">
         <input
@@ -65,10 +73,28 @@ nav {
   padding: 0 20px;
 }
 
+.left-actions
+{
+  display: flex;
+  align-items: center;
+}
+
 .search {
   margin: 0 auto;
 }
 
+a
+{
+  color: #fff;
+  text-decoration: none;
+  margin: 20px;
+}
+
+a:hover
+{
+  color: #fff;
+  text-decoration: underline;
+}
 .search input {
   padding: 5px;
   border-radius: 5px;
