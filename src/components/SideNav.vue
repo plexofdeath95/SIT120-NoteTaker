@@ -40,14 +40,20 @@ export default defineComponent({
       FolderNote.value.folders.forEach((folder) => {
         folders.value.push(folder)
         folderSelectedArray.value.push(false)
+
       })
 
       //use folder names as keys to get notes
       folders.value.forEach((folder) => {
-        const noteData = FolderNote.value?.notes[folder.name]
+        const noteData = FolderNote.value?.notes[folder.id]
+        console.log(noteData)
         if (noteData) {
+          folder.notes = []
           noteData.forEach((note) => {
-            notes.value.push(note)
+            if(folder.notes)
+              folder.notes.push(note)
+            console.log("Hello!")
+            console.log(note)
           })
         }
       })
@@ -123,7 +129,9 @@ export default defineComponent({
           :key="folder.id"
           :folder="folder"
           :isSelected="returnFolderIsSelectedByType(folder)"
-          @select="selectFolder"
+          @select="{selectFolder}"
+          @refreshMain="$emit('refreshMain', $event)"
+          @selectNote="$emit('selectNote', $event)"
         />
       </ul>
     </div>

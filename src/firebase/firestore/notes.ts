@@ -6,6 +6,7 @@ export interface iFolder
 {
     id: string;
     name: string;
+    notes?: iNote[];
 }
 
 
@@ -14,7 +15,7 @@ export interface iNote
     id: string;
     title: string;
     content: string;
-    timestamp: number;
+    timestamp: Date;
     folder: string;
 }
 
@@ -83,37 +84,39 @@ const deleteFolder = async (id: string, user: iUser) => {
 // are always created under a folder
 //they will be created under a default folder if no folder is specified
 const createNote = async (note: iNote, folder: iFolder, user: iUser) => {
-    //check if folder exists
+    // Check if folder exists
     let folderExists = false;
     const querySnapshot = await getDocs(collection(db, "users", user.userID, "folders"));
     querySnapshot.forEach((doc) => {
-        if(doc.id === folder.name)
-        {
+        if(doc.id === folder.id) {
             folderExists = true;
         }
     });
 
-    //if folder exists, create note under folder
-    if(folderExists)
-    {
+    // If folder exists, create note under folder
+    if(folderExists) {
         try {
-            const docRef = await addDoc(collection(db, "users", user.userID, "folders", folder.name, "notes"), note);
-            console.log("Document written with ID: ", docRef.id);
+            await setDoc(doc(db, "users", user.userID, "folders", folder.id, "notes", note.id), note);
+            console.log("Document written with ID: ", note.id);
         } catch (e) {
             console.error("Error adding document: ", e);
         }
     }
-    //if folder does not exist, create folder and note under folder
-    else
-    {
+    // If folder does not exist, create folder and note under folder
+    else {
         try {
-            const docRef = await addDoc(collection(db, "users", user.userID, "folders", folder.name, "notes"), note);
-            console.log("Document written with ID: ", docRef.id);
+            // First, create the folder
+            await setDoc(doc(db, "users", user.userID, "folders", folder.id), folder);
+
+            // Then, create the note under that folder
+            await setDoc(doc(db, "users", user.userID, "folders", folder.id, "notes", note.id), note);
+            console.log("Document written with ID: ", note.id);
         } catch (e) {
             console.error("Error adding document: ", e);
         }
     }
-}
+};
+
 
 //read all notes under a specific user
 const readNotes = async (user: iUser) => {
@@ -131,7 +134,7 @@ const updateNote = async (id: string, note: iNote, folder: iFolder, user: iUser)
     let folderExists = false;
     const querySnapshot = await getDocs(collection(db, "users", user.userID, "folders"));
     querySnapshot.forEach((doc) => {
-        if(doc.id === folder.name)
+        if(doc.id === folder.id)
         {
             folderExists = true;
         }
@@ -141,7 +144,7 @@ const updateNote = async (id: string, note: iNote, folder: iFolder, user: iUser)
     if(folderExists)
     {
         try {
-            await setDoc(doc(db, "users", user.userID, "folders", folder.name, "notes", id), note);
+            await setDoc(doc(db, "users", user.userID, "folders", folder.id, "notes", id), note);
         } catch (e) {
             console.error("Error updating document: ", e);
         }
@@ -150,22 +153,51 @@ const updateNote = async (id: string, note: iNote, folder: iFolder, user: iUser)
     else
     {
         try {
-            await setDoc(doc(db, "users", user.userID, "folders", folder.name, "notes", id), note);
+            await setDoc(doc(db, "users", user.userID, "folders", folder.id, "notes", id), note);
         } catch (e) {
             console.error("Error updating document: ", e);
         }
     }
 }
 
+const findNoteByID = async (id: string, folder: iFolder, user: iUser): Promise<iNote | null> => {
+    const querySnapshot = await getDocs(collection(db, "users", user.userID, "folders", folder.id, "notes"));
+  
+    for (const doc of querySnapshot.docs) {
+      if (doc.id === id) {
+        return doc.data() as iNote;
+      }
+    }
+  
+    return null;
+  }
+  
+  
+
+const getFolderFromID = async (id: string, user: iUser): Promise<iFolder | null> => {
+    const querySnapshot = await getDocs(collection(db, "users", user.userID, "folders"));
+    
+    for (const doc of querySnapshot.docs) {
+      if (doc.id === id) {
+        console.log("found folder");
+        return doc.data() as iFolder;
+      }
+    }
+    
+    return null;
+  }
+  
+  
 //delete note under a specific user
 const deleteNote = async (id: string, folder: iFolder, user: iUser) => {
     //check if folder exists
     let folderExists = false;
     const querySnapshot = await getDocs(collection(db, "users", user.userID, "folders"));
     querySnapshot.forEach((doc) => {
-        if(doc.id === folder.name)
+        if(doc.id === folder.id)
         {
             folderExists = true;
+            console.log("found folder to delete from");
         }
     });
 
@@ -173,7 +205,7 @@ const deleteNote = async (id: string, folder: iFolder, user: iUser) => {
     if(folderExists)
     {
         try {
-            await deleteDoc(doc(db, "users", user.userID, "folders", folder.name, "notes", id));
+            await deleteDoc(doc(db, "users", user.userID, "folders", folder.id, "notes", id));
         } catch (e) {
             console.error("Error deleting document: ", e);
         }
@@ -182,41 +214,71 @@ const deleteNote = async (id: string, folder: iFolder, user: iUser) => {
     else
     {
         try {
-            await deleteDoc(doc(db, "users", user.userID, "folders", folder.name, "notes", id));
+            await deleteDoc(doc(db, "users", user.userID, "folders", folder.id, "notes", id));
         } catch (e) {
             console.error("Error deleting document: ", e);
         }
     }
 }
 
+
 const fetchFolderNoteCollection = async (user: iUser): Promise<iFolderNoteCollection> => {
-  const folderNoteCollection: iFolderNoteCollection = {
-    folders: [],
-    notes: {},
+    const folderNoteCollection: iFolderNoteCollection = {
+      folders: [],
+      notes: {},
+    };
+  
+    try {
+      // Fetch all folders for this user
+      const folderSnapshot = await getDocs(collection(db, "users", user.userID, "folders"));
+      if (folderSnapshot.empty) {
+        console.log("No folders found");
+        return folderNoteCollection;
+      }
+  
+      folderSnapshot.forEach((doc) => {
+        const folderData = doc.data() as iFolder;
+        folderNoteCollection.folders.push(folderData);
+      });
+  
+      console.log("Fetched folders:", folderNoteCollection.folders);
+  
+      // Fetch all notes for each folder
+      for (const folder of folderNoteCollection.folders) {
+        const notes: iNote[] = [];
+  
+        const noteSnapshot = await getDocs(collection(db, "users", user.userID, "folders", folder.id, "notes"));
+        if (noteSnapshot.empty) {
+          console.log(`No notes found for folder with ID: ${folder.id}`);
+          continue;
+        }
+  
+        noteSnapshot.forEach((doc) => {
+          const noteData = doc.data() as iNote;
+          notes.push(noteData);
+        });
+  
+        console.log(`Fetched notes for folder with ID ${folder.id}:`, notes);
+        
+        folderNoteCollection.notes[folder.id] = notes;
+      }
+  
+      return folderNoteCollection;
+  
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw new Error("Failed to fetch folder and note collection");
+    }
   };
+  
 
-  // Fetch all folders for this user
-  const folderSnapshot = await getDocs(collection(db, "users", user.userID, "folders"));
-  folderSnapshot.forEach((doc) => {
-    const folderData = doc.data() as iFolder;
-    folderNoteCollection.folders.push(folderData);
-  });
+const generateID = () => {
+    return Math.random().toString(36).substring(7);
+}
 
-  // Fetch all notes for each folder
-  for (const folder of folderNoteCollection.folders) {
-    const notes: iNote[] = [];
-
-    const noteSnapshot = await getDocs(collection(db, "users", user.userID, "folders", folder.name, "notes"));
-    noteSnapshot.forEach((doc) => {
-      const noteData = doc.data() as iNote;
-      notes.push(noteData);
-    });
-
-    folderNoteCollection.notes[folder.name] = notes;
-  }
-
-  return folderNoteCollection;
-};
-
-
-export default {createFolder, readFolders, updateFolder, deleteFolder, createNote, readNotes, updateNote, deleteNote, fetchFolderNoteCollection};
+export default {createFolder, 
+    readFolders, 
+    updateFolder, 
+    deleteFolder, 
+    createNote, readNotes, updateNote, deleteNote, fetchFolderNoteCollection, 
+    generateID, findNoteByID, getFolderFromID};

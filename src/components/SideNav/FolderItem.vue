@@ -43,13 +43,19 @@ export default defineComponent({
 </script>
 
 <template>
-  <li @click=" ()=> {selectFolder() 
-    $emit('select', currFolder)}" :class="{selected: isSelected}">
-    <span class="material-icons folder-icon" @click="() => {toggleFolderIcon() 
-      }">
-      {{ folderOpen ? 'folder_open' : 'folder' }}
+  <li>
+    <span @click="() => {selectFolder(); $emit('select', currFolder); $emit('refreshMain', currFolder)}" :class="{selected: isSelected}">
+      <span class="material-icons folder-icon" @click="toggleFolderIcon">
+        {{ folderOpen ? 'folder_open' : 'folder' }}
+      </span>
+      {{ folder.name }}
     </span>
-    {{ folder.name }}
+    <ul v-if="folderOpen" class="indented-list">
+      <li v-for="note in currFolder.notes" :key="note.id" @click="$emit('selectNote', note)">
+        <span class="material-icons note-icon">note</span>
+        {{ note.title }}
+      </li>
+    </ul>
   </li>
 </template>
 
@@ -59,19 +65,17 @@ export default defineComponent({
   vertical-align: middle;
 }
 
-.selected-icon {
-  margin-left: 8px;
-  vertical-align: middle;
-  color: green;
+.indented-list {
+  margin-left: 24px;
+  list-style: none;
+}
+
+.note-icon {
+  margin-right: 8px;
 }
 
 .selected {
   color: green;
 }
-
-@media (max-width: 768px) {
-  .main-layout.hide-sidenav {
-    margin-left: 0;
-  }
-}
 </style>
+

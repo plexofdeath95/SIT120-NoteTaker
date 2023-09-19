@@ -1,20 +1,94 @@
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, type PropType } from 'vue'
+import type { iFolder, iNote } from '../firebase/firestore/notes'
+import noteFunctions from '../firebase/firestore/notes'
+import type { iUser } from '@/firebase/firestore/users'
 
 export default defineComponent({
   name: 'MainDisplay',
-  setup() {
+  props:
+  {
+    note: {
+      type: Object as PropType<iNote> || undefined,
+      required: false
+    }
+  },
+  setup(props) {
     const noteTitle = ref('Sample Title')
     const noteContent = ref('This is a sample note content.')
+    const noteID = ref('')
+    const user = ref<iUser>()
 
-    function saveNote() {
-      // Logic to save the note
-      console.log(`Saved: ${noteTitle.value}, ${noteContent.value}`)
+    user.value = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || '{}') : undefined
+    if(props.note)
+    {
+      noteTitle.value = props.note.title
+      noteContent.value = props.note.content
+      noteID.value = props.note.id
+      console.log(noteID.value)
+    }
+    else
+    {
+      //generate a new noteID
+      noteID.value = noteFunctions.generateID()
     }
 
-    function deleteNote() {
+    async function saveNote() {
+      // Logic to save the note
+      //get user from local storage
+      const user:iUser = JSON.parse(localStorage.getItem('user') || '{}')
+      if(user)
+      {
+        console.log(user)
+        //get current folderID
+        const folderID = JSON.parse(localStorage.getItem('selectedFolder') || '{}')
+        if(folderID)
+        {
+          console.log(folderID)
+          //get folder from folderID
+          const folder = await noteFunctions.getFolderFromID(folderID, user)
+          console.log(folder)
+          if(folder)
+          {
+            console.log("Found Folder")
+            //get note from noteTitle
+            const note = await noteFunctions.findNoteByID(noteID.value, folder, user)
+            if(note !== null)
+            {
+              //update note content
+              note.content = noteContent.value
+              //update folder
+              noteFunctions.updateFolder(folderID, folder, user)
+              noteFunctions.updateNote(noteID.value, note, folder, user)
+            }
+            else
+            {
+              //create new note
+              const newNoteData:iNote = {
+                id: noteID.value,
+                title: noteTitle.value,
+                content: noteContent.value,
+                timestamp: new Date(),
+                folder: folderID
+              }
+              noteFunctions.createNote(newNoteData, folder, user)
+            }
+          }
+        }
+      }
+      //get the current selected folder, if none, create a new default folder
+
+    }
+
+    async function deleteNote() {
       // Logic to delete the note
       console.log(`Deleted: ${noteTitle.value}`)
+      const user:iUser = JSON.parse(localStorage.getItem('user') || '{}')
+      if(props.note){
+        const folder = await noteFunctions.getFolderFromID(props.note.folder, user)
+        if(folder)
+          await noteFunctions.deleteNote(noteID.value, folder, user)
+      }
     }
 
     return {
@@ -32,10 +106,10 @@ export default defineComponent({
     <div class="inner-display">
       <div class="note-header">
         <input type="text" v-model="noteTitle" placeholder="Note Title" />
-        <button @click="saveNote">
+        <button @click="{saveNote(); $emit('rerender')}">
           <span class="material-icons button-icon">save</span>
         </button>
-        <button @click="deleteNote">
+        <button @click="{deleteNote();  $emit('rerender')}">
           <span class="material-icons button-icon">delete</span>
         </button>
       </div>
