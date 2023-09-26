@@ -21,7 +21,6 @@ export default defineComponent({
   async setup(props) {
     const folders = ref<iFolder[]>([])
     const selectedFolder = ref<string>('')
-    const notes = ref<iNote[]>([])
     const FolderNote = ref<iFolderNoteCollection>()
     const folderSelectedArray = ref<boolean[]>([])
     const user = ref<iUser>()
