@@ -1,6 +1,6 @@
-import  db  from "../firebase"
+import  {db}  from "../firebase"
 import type {iUser} from './users'
-import { collection, addDoc, getDocs, setDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, getDocs, setDoc, deleteDoc, doc, Timestamp } from "firebase/firestore";
 
 export interface iFolder
 {
@@ -15,7 +15,7 @@ export interface iNote
     id: string;
     title: string;
     content: string;
-    timestamp: Date;
+    timestamp: Timestamp;
     folder: string;
 }
 
@@ -42,7 +42,6 @@ const createFolder = async (folder: string, user?: iUser) => {
         newFolder.id = Math.random().toString(36).substring(7);
         //create new document with the id
         await setDoc(doc(db, "users", user.userID, "folders", newFolder.id), newFolder);
-        console.log("Document written with ID: ");
         return newFolder;
     } catch (e) {
         console.error("Error adding document: ", e);

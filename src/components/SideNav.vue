@@ -1,107 +1,123 @@
 <script lang="ts">
-import { defineComponent, ref, watchEffect, type PropType } from 'vue'
+import { defineComponent, ref, watchEffect, type PropType, computed } from 'vue'
 import FolderItem from '@/components/SideNav/FolderItem.vue' // Adjust the path accordingly
 import type { iFolder, iFolderNoteCollection, iNote } from '../firebase/firestore/notes'
 import noteFunctions from '../firebase/firestore/notes'
-import { onBeforeMount, onMounted, onUnmounted, watch } from 'vue'
 import type { iUser } from '@/firebase/firestore/users'
-
+import { useFolderNotes } from '@/composables/useFolderNotes'
 
 export default defineComponent({
   name: 'SideNav',
   props: {
     user: {
-      type: Object as PropType<iUser> || undefined,
-      required: false
+      type: Object as PropType<iUser>,
+      required: true
     }
   },
   components: {
     FolderItem
   },
-  async setup(props) {
-    const folders = ref<iFolder[]>([])
-    const selectedFolder = ref<string>('')
-    const FolderNote = ref<iFolderNoteCollection>()
+  setup(props) {
+    // --- REFS & COMPUTEDS ---
+
+    const selectedFolder = ref(localStorage.getItem('selectedFolder') || '')
+    const FolderNote = ref<iFolderNoteCollection>({ folders: [], notes: {} })
     const folderSelectedArray = ref<boolean[]>([])
-    const user = ref<iUser>()
     const ready = ref(false)
-    if (props.user) {
-      user.value = props.user
-      if(user.value)
-       await refreshFolders(user.value)
-      ready.value = true
-    }
-
-    //check if we have folders and notes within folders,
-    //populate folders and notes in a tree structure for display
-    if (FolderNote.value) {
-      //get folders
-      FolderNote.value.folders.forEach((folder) => {
-        folders.value.push(folder)
-        folderSelectedArray.value.push(false)
-
-      })
-
-      //use folder names as keys to get notes
-      folders.value.forEach((folder) => {
-        const noteData = FolderNote.value?.notes[folder.id]
-        console.log(noteData)
-        if (noteData) {
-          folder.notes = []
-          noteData.forEach((note) => {
-            if(folder.notes)
-              folder.notes.push(note)
-            console.log("Hello!")
-            console.log(note)
-          })
-        }
-      })
-    }
-
-   async function refreshFolders(user: iUser)
-   {
-      ready.value = false
-      FolderNote.value = await noteFunctions.fetchFolderNoteCollection(user)
-      ready.value = true
-   }
-   async function addFolder() {
-      const newFolder = prompt('Enter folder name:')
-      console.log(props.user)
-      if (newFolder) {
-        await noteFunctions.createFolder( newFolder, props.user)
+    const openedFolders = computed(() => {
+      try {
+        const storedValue = localStorage.getItem('openedFolders')
+        return storedValue ? JSON.parse(storedValue) : []
+      } catch (error) {
+        console.error('Error parsing openedFolders from localStorage:', error)
+        return []
       }
-      if(user.value)
-        await refreshFolders(user.value)
+    })
+
+    const cleanup = () => {
+      console.log('Cleaning up real-time listeners')
     }
 
-    function selectFolder(folder: iFolder) {
+    const { folders, notes } = useFolderNotes(props.user, cleanup)
+
+    // --- FUNCTIONS ---
+
+    const rerender = () => {
+      console.log('rerendering')
+      ready.value = false
+      setTimeout(() => {
+        ready.value = true
+      }, 0)
+    }
+
+    const addFolder = async () => {
+      const newFolder = prompt('Enter folder name:')
+      if (newFolder) {
+        await noteFunctions.createFolder(newFolder, props.user)
+      }
+    }
+
+    const selectFolder = (folder: iFolder) => {
       localStorage.setItem('selectedFolder', JSON.stringify(folder.id))
       const index = findFolderIndexByID(folder.id)
-      //toggle all to false
-      folderSelectedArray.value.forEach((folder, index) => {
-        folderSelectedArray.value[index] = false
-      })
+      folderSelectedArray.value.fill(false)
       if (index !== -1) {
+        console.log(index)
         folderSelectedArray.value[index] = true
+        console.log(folderSelectedArray.value)
       }
+      selectedFolder.value = folder.id
     }
 
-    function findFolderIndexByID(id: string) {
+    const findFolderIndexByID = (id: string) => {
       return folders.value.findIndex((folder) => folder.id === id)
     }
-    
-    function returnFolderIsSelectedByType(folder: iFolder) {
+
+    const returnFolderIsSelectedByType = (folder: iFolder) => {
       const index = findFolderIndexByID(folder.id)
-      if (index !== -1) {
-        return folderSelectedArray.value[index]
-      }
-      return false
+      return index !== -1 ? folderSelectedArray.value[index] : false
     }
+
+    // --- WATCH EFFECTS ---
+
+    watchEffect(() => {
+      ready.value = false
+      FolderNote.value.folders = folders.value
+
+      const newNotes: { [key: string]: iNote[] } = {}
+      folders.value.forEach((folder) => {
+        newNotes[folder.id] = notes.value[folder.id] || []
+      })
+      FolderNote.value.notes = newNotes
+
+      //check if fodlerSelectedArray is the same length as folders, if not, add or remove items
+      if (folderSelectedArray.value.length !== folders.value.length) {
+        if (folderSelectedArray.value.length < folders.value.length) {
+          //add items
+          const diff = folders.value.length - folderSelectedArray.value.length
+          for (let i = 0; i < diff; i++) {
+            folderSelectedArray.value.push(false)
+          }
+        } else {
+          //remove items
+          const diff = folderSelectedArray.value.length - folders.value.length
+          for (let i = 0; i < diff; i++) {
+            folderSelectedArray.value.pop()
+          }
+        }
+      }
+      ready.value = true
+      rerender()
+    })
+
+    // --- RETURN ---
 
     return {
       folders,
       selectedFolder,
       ready,
+      FolderNote,
+      openedFolders,
       addFolder,
       selectFolder,
       returnFolderIsSelectedByType
@@ -113,22 +129,31 @@ export default defineComponent({
 <template>
   <aside class="side-nav">
     <div class="quick-actions">
-      <button @click="() => {addFolder(); $emit('rerender')}">
+      <button
+        @click="
+          () => {
+            addFolder()
+            $emit('rerender')
+          }
+        "
+      >
         <span class="material-icons button-icon">create_new_folder</span>
         <!-- Material Icon for new folder -->
         New Folder
       </button>
     </div>
 
-    <div class="folders" v-if=ready>
+    <div class="folders" v-if="ready">
       <h3>Folders</h3>
       <ul>
         <FolderItem
           v-for="folder in folders"
           :key="folder.id"
           :folder="folder"
+          :notes="FolderNote.notes[folder.id]"
           :isSelected="returnFolderIsSelectedByType(folder)"
-          @select="{selectFolder}"
+          :isFolderOpen="openedFolders.includes(folder.id)"
+          @select="(folder) => selectFolder(folder)"
           @refreshMain="$emit('refreshMain', $event)"
           @selectNote="$emit('selectNote', $event)"
         />

@@ -3,6 +3,8 @@ import { defineComponent, ref, type PropType } from 'vue'
 import type { iFolder, iNote } from '../firebase/firestore/notes'
 import noteFunctions from '../firebase/firestore/notes'
 import type { iUser } from '@/firebase/firestore/users'
+import notes from '../firebase/firestore/notes'
+import { Timestamp } from 'firebase/firestore'
 
 export default defineComponent({
   name: 'MainDisplay',
@@ -14,10 +16,18 @@ export default defineComponent({
     }
   },
   setup(props) {
-    const noteTitle = ref('Sample Title')
+    const noteTitle = ref('Untitled Note')
     const noteContent = ref('This is a sample note content.')
     const noteID = ref('')
     const user = ref<iUser>()
+    const noteData = ref<iNote>(
+      {
+        id: '',
+          title: noteTitle.value,
+          content: noteContent.value,
+          timestamp: Timestamp.now(),
+          folder: ''
+      })
 
     user.value = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || '{}') : undefined
     if(props.note)
@@ -25,12 +35,53 @@ export default defineComponent({
       noteTitle.value = props.note.title
       noteContent.value = props.note.content
       noteID.value = props.note.id
-      console.log(noteID.value)
+      
+
+      if(props.note)
+      {
+        noteData.value = props.note
+        console.log(noteData.value.timestamp)
+      }
+   
     }
     else
     {
       //generate a new noteID
       noteID.value = noteFunctions.generateID()
+    }
+
+    async function newNote() 
+    {
+      // Logic to create a new note
+      //get user from local storage
+      noteID.value = noteFunctions.generateID()
+      const user:iUser = JSON.parse(localStorage.getItem('user') || '{}')
+      if(user)
+      {
+        //get current folderID
+        const folderID = JSON.parse(localStorage.getItem('selectedFolder') || '{}')
+        if(folderID)
+        {
+          //get folder from folderID
+          const folder = await noteFunctions.getFolderFromID(folderID, user)
+          if(noteContent.value === undefined)
+          {
+            noteContent.value = ''
+          }
+          if(folder)
+          {
+            //create new note
+            const newNoteData:iNote = {
+              id: noteID.value,
+              title: 'Untitled note',
+              content: noteContent.value,
+              timestamp: Timestamp.now(),
+              folder: folderID
+            }
+            noteFunctions.createNote(newNoteData, folder, user)
+          }
+        }
+      }
     }
 
     async function saveNote() {
@@ -39,24 +90,25 @@ export default defineComponent({
       const user:iUser = JSON.parse(localStorage.getItem('user') || '{}')
       if(user)
       {
-        console.log(user)
         //get current folderID
         const folderID = JSON.parse(localStorage.getItem('selectedFolder') || '{}')
         if(folderID)
         {
-          console.log(folderID)
+          
           //get folder from folderID
           const folder = await noteFunctions.getFolderFromID(folderID, user)
-          console.log(folder)
+     
           if(folder)
           {
-            console.log("Found Folder")
+      
             //get note from noteTitle
             const note = await noteFunctions.findNoteByID(noteID.value, folder, user)
             if(note !== null)
             {
               //update note content
               note.content = noteContent.value
+              note.title = noteTitle.value
+              note.timestamp = Timestamp.now();
               //update folder
               noteFunctions.updateFolder(folderID, folder, user)
               noteFunctions.updateNote(noteID.value, note, folder, user)
@@ -68,7 +120,7 @@ export default defineComponent({
                 id: noteID.value,
                 title: noteTitle.value,
                 content: noteContent.value,
-                timestamp: new Date(),
+                timestamp: Timestamp.now(),
                 folder: folderID
               }
               noteFunctions.createNote(newNoteData, folder, user)
@@ -82,7 +134,7 @@ export default defineComponent({
 
     async function deleteNote() {
       // Logic to delete the note
-      console.log(`Deleted: ${noteTitle.value}`)
+   
       const user:iUser = JSON.parse(localStorage.getItem('user') || '{}')
       if(props.note){
         const folder = await noteFunctions.getFolderFromID(props.note.folder, user)
@@ -94,8 +146,10 @@ export default defineComponent({
     return {
       noteTitle,
       noteContent,
+      noteData,
       saveNote,
-      deleteNote
+      deleteNote,
+      newNote
     }
   }
 })
@@ -104,19 +158,34 @@ export default defineComponent({
 <template>
   <div class="main-display">
     <div class="inner-display">
+      <div class="current-note-display">
+          <span>Current File: {{ noteData.folder }}/{{ noteTitle }}</span>
+          <div class="note-details">
+        <span>{{ noteData.timestamp.toDate() }}</span>
+      </div>
+        </div>
       <div class="note-header">
         <input type="text" v-model="noteTitle" placeholder="Note Title" />
-        <button @click="{saveNote(); $emit('rerender')}">
+
+        <button @click="newNote">
+          <span class="material-icons button-icon">add</span>
+        </button>
+        <button @click="saveNote">
           <span class="material-icons button-icon">save</span>
         </button>
-        <button @click="{deleteNote();  $emit('rerender')}">
+        <button @click="deleteNote">
           <span class="material-icons button-icon">delete</span>
         </button>
       </div>
-      <textarea class="note-content" v-model="noteContent" placeholder="Your note..."></textarea>
+   
+      <div class="note-textarea">
+        <div class="line-numbers"></div>
+        <textarea class="note-content" v-model="noteContent" placeholder="Your note..."></textarea>
+      </div>
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .main-display {
@@ -160,6 +229,10 @@ export default defineComponent({
   border: none;
   background-color: var(--secondary-bg);
   color: var(--primary-text);
+}
+
+.current-note-display {
+  margin-bottom: 20px;
 }
 
 @media (max-width: 768px) {

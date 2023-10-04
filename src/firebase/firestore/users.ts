@@ -1,5 +1,5 @@
-import  db  from "../firebase";
-import { collection, addDoc, getDocs, setDoc, deleteDoc, doc } from "firebase/firestore";
+import  {db}  from "../firebase";
+import { collection, addDoc, getDocs, setDoc, deleteDoc, doc, getDoc } from "firebase/firestore";
 
 export interface iUser
 {
@@ -10,8 +10,9 @@ export interface iUser
 
 async function createUser(user: iUser) {
     try {
-        const docRef = await addDoc(collection(db, "users"), user);
-        console.log("Document written with ID: ", docRef.id);
+        // Use the setDoc function, and create a reference to the document with user.userID as its ID
+        await setDoc(doc(db, "users", user.userID), user);
+        console.log("Document written with ID: ", user.userID);
     } catch (e) {
         console.error("Error adding document: ", e);
     }
@@ -26,6 +27,21 @@ async function readUsers(): Promise<iUser[]> {
         users.push(user);
     });
     return users;
+}
+
+
+async function getUser(id: string): Promise<iUser | null> {
+    const docRef = doc(db, "users", id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        console.log("Document data:", docSnap.data());
+        return docSnap.data() as iUser;
+    } else {
+        // doc.data() will be undefined in this case
+        console.log("No such document!");
+        return null;
+    }
 }
 
 async function updateUser(id: string, user: iUser) {
@@ -45,4 +61,4 @@ async function deleteUser(id: string) {
 }
 
 
-export default {createUser, readUsers, updateUser, deleteUser};
+export {createUser, readUsers, updateUser, deleteUser, getUser};

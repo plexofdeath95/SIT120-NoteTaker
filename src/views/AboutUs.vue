@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, onBeforeMount } from 'vue';
-import readUsers, { type iUser } from '@/firebase/firestore/users';
+import { type iUser, readUsers } from '@/firebase/firestore/users';
 import NavBar from '@/components/NavBar.vue';
 import GoogleMapsInt from '@/components/GoogleMapsInt.vue';
 const showSideNav = ref(window.innerWidth > 768);
 const user = ref<iUser>();
 
 onBeforeMount(async () => {
-  const users = await readUsers.readUsers();
+  const users = await readUsers();
   localStorage.setItem('user', JSON.stringify(users[0]));
   if (users.length > 0) {
     user.value = users[0];

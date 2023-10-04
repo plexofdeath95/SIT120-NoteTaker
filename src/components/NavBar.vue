@@ -2,6 +2,8 @@
 import { defineComponent, ref, type PropType } from 'vue'
 import type {iUser}from '../firebase/firestore/users'
 import { RouterLink } from 'vue-router'
+import { logoutUser } from '@/firebase/Auth/AuthFunctions'
+import { useRouter } from 'vue-router'
 export default defineComponent({
   name: 'NavBar',
   props: {
@@ -18,7 +20,7 @@ export default defineComponent({
   setup() {
     const searchQuery = ref('')
     const showSideNav = ref(false)
-
+    const router = useRouter()
     function performSearch() {
       console.log(`Searching for ${searchQuery.value}`)
     }
@@ -27,14 +29,20 @@ export default defineComponent({
       showSideNav.value = !showSideNav.value
     }
 
+    const logout = async () => {
+      localStorage.removeItem('user')
+      await logoutUser()
+      router.push('/')
+    }
+
     return {
       searchQuery,
       performSearch,
       showSideNav,
-      toggleSideNav
-    }
+      toggleSideNav,
+      logout
   }
-})
+}})
 </script>
 
 <template>
@@ -57,6 +65,9 @@ export default defineComponent({
       </div>
       <div class="right-actions">
         Hello {{ user?.username }}
+        <div>
+          <button @click="logout">Logout</button>
+        </div>
       </div>
     </nav>
   </header>
