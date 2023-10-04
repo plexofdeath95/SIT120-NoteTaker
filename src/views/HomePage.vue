@@ -7,7 +7,7 @@ import { type iUser, readUsers, getUser } from '@/firebase/firestore/users'
 import type { iNote } from '@/firebase/firestore/notes'
 import { getCurrentUser } from '@/firebase/Auth/AuthFunctions'
 import { useRouter } from 'vue-router'
-
+import {getFolderFromID} from '@/firebase/firestore/notes'
 export default defineComponent({
   name: 'HomePage',
   components: {
@@ -27,11 +27,18 @@ export default defineComponent({
     const ready = ref(false)
     const selectedNote = ref<iNote>()
     const router = useRouter()
+    const showSearchModal = ref(false)
 
     const resizeHandler = () => {
       showSideNav.value = window.innerWidth > 768
       console.log(showSideNav.value)
     }
+    const openSearchModal = () => {
+    showSearchModal.value = true
+}
+const closeSearchModal = () => {
+    showSearchModal.value = false
+}
 
     onMounted(() => {
       window.addEventListener('resize', resizeHandler)
@@ -52,8 +59,12 @@ export default defineComponent({
       }
     })
 
-    const handleNoteSelect = (note: iNote) => {
+    const handleNoteSelect = async (note: iNote) => {
       selectedNote.value = note
+      if(user.value)
+      {
+         const res = await getFolderFromID(note.folder, user.value)
+      }
       localStorage.setItem('selectedNote', JSON.stringify(note))
     }
 
@@ -86,7 +97,10 @@ export default defineComponent({
       ready,
       selectedNote,
       handleNoteSelect,
-      rerenderView
+      rerenderView,
+      openSearchModal,
+      closeSearchModal,
+      showSearchModal
     }
   }
 })
@@ -94,9 +108,11 @@ export default defineComponent({
 
 <template>
   <div class="container" v-if="ready">
-    <NavBar :user="user || undefined" @toggleSideNav="showSideNav = !showSideNav" />
+    <KeepAlive>
+    <NavBar :user="user" @showSearchModal="openSearchModal" @toggleSideNav="showSideNav = !showSideNav" @openNote="handleNoteSelect"/>
+  </KeepAlive>
     <div class="main-layout" :class="{ 'hide-sidenav': !showSideNav }">
-      <Suspense>
+ 
         <SideNav
           v-if="showSideNav"
           :class="{ show: showSideNav }"
@@ -105,9 +121,13 @@ export default defineComponent({
           @refreshMain="handleNoteSelect"
           @rerender="rerenderView"
         />
-      </Suspense>
-      <MainDisplay v-if="!refreshMainView" :note="selectedNote" @rerender="rerenderView" />
+     
+  
+      <MainDisplay v-if="!refreshMainView" :note="selectedNote" :user="user" @rerender="rerenderView" />
+ 
     </div>
+
+
   </div>
 </template>
 
@@ -123,6 +143,16 @@ export default defineComponent({
   width: 100%;
 }
 
+/* Styling for the modal backdrop */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+}
 @media (max-width: 768px) {
   .main-layout.hide-sidenav {
     margin-left: 0;

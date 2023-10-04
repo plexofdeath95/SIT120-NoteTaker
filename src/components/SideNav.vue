@@ -1,8 +1,8 @@
 <script lang="ts">
-import { defineComponent, ref, watchEffect, type PropType, computed } from 'vue'
+import { defineComponent, ref, watchEffect, type PropType, computed, onMounted } from 'vue'
 import FolderItem from '@/components/SideNav/FolderItem.vue' // Adjust the path accordingly
 import type { iFolder, iFolderNoteCollection, iNote } from '../firebase/firestore/notes'
-import noteFunctions from '../firebase/firestore/notes'
+import { createFolder } from '../firebase/firestore/notes'
 import type { iUser } from '@/firebase/firestore/users'
 import { useFolderNotes } from '@/composables/useFolderNotes'
 
@@ -24,6 +24,10 @@ export default defineComponent({
     const FolderNote = ref<iFolderNoteCollection>({ folders: [], notes: {} })
     const folderSelectedArray = ref<boolean[]>([])
     const ready = ref(false)
+
+    const addingFolder = ref(false)
+    const newFolderName = ref('')
+
     const openedFolders = computed(() => {
       try {
         const storedValue = localStorage.getItem('openedFolders')
@@ -41,7 +45,6 @@ export default defineComponent({
     const { folders, notes } = useFolderNotes(props.user, cleanup)
 
     // --- FUNCTIONS ---
-
     const rerender = () => {
       console.log('rerendering')
       ready.value = false
@@ -53,7 +56,19 @@ export default defineComponent({
     const addFolder = async () => {
       const newFolder = prompt('Enter folder name:')
       if (newFolder) {
-        await noteFunctions.createFolder(newFolder, props.user)
+        await createFolder(newFolder, props.user)
+      }
+    }
+
+    const startAddingFolder = () => {
+      addingFolder.value = true
+    }
+
+    const finishAddingFolder = async () => {
+      if (newFolderName.value.trim()) {
+        await createFolder(newFolderName.value.trim(), props.user)
+        newFolderName.value = ''
+        addingFolder.value = false
       }
     }
 
@@ -90,7 +105,7 @@ export default defineComponent({
       })
       FolderNote.value.notes = newNotes
 
-      //check if fodlerSelectedArray is the same length as folders, if not, add or remove items
+      //check if folderSelectedArray is the same length as folders, if not, add or remove items
       if (folderSelectedArray.value.length !== folders.value.length) {
         if (folderSelectedArray.value.length < folders.value.length) {
           //add items
@@ -118,9 +133,13 @@ export default defineComponent({
       ready,
       FolderNote,
       openedFolders,
+      newFolderName,
+      addingFolder,
       addFolder,
       selectFolder,
-      returnFolderIsSelectedByType
+      returnFolderIsSelectedByType,
+      startAddingFolder,
+      finishAddingFolder
     }
   }
 })
@@ -129,16 +148,8 @@ export default defineComponent({
 <template>
   <aside class="side-nav">
     <div class="quick-actions">
-      <button
-        @click="
-          () => {
-            addFolder()
-            $emit('rerender')
-          }
-        "
-      >
+      <button @click="startAddingFolder">
         <span class="material-icons button-icon">create_new_folder</span>
-        <!-- Material Icon for new folder -->
         New Folder
       </button>
     </div>
@@ -146,6 +157,14 @@ export default defineComponent({
     <div class="folders" v-if="ready">
       <h3>Folders</h3>
       <ul>
+        <li v-if="addingFolder">
+          <input
+            v-model="newFolderName"
+            @keyup.enter="finishAddingFolder"
+            placeholder="Enter folder name..."
+            autofocus
+          />
+        </li>
         <FolderItem
           v-for="folder in folders"
           :key="folder.id"
