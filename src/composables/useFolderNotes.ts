@@ -1,7 +1,8 @@
 import { ref, type Ref} from 'vue';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '@/firebase/firebase';
-import type { iFolder, iNote } from '@/firebase/firestore/notes';
+import type { iNote } from '@/firebase/firestore/noteFunctions';
+import type { iFolder } from "@/firebase/firestore/folderFunctions";
 import type { iUser
  } from '@/firebase/firestore/users';
 

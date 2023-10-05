@@ -4,10 +4,10 @@ import NavBar from '@/components/NavBar.vue'
 import SideNav from '@/components/SideNav.vue'
 import MainDisplay from '@/components/MainDisplay.vue'
 import { type iUser, readUsers, getUser } from '@/firebase/firestore/users'
-import type { iNote } from '@/firebase/firestore/notes'
+import type { iNote } from '@/firebase/firestore/noteFunctions'
 import { getCurrentUser } from '@/firebase/Auth/AuthFunctions'
 import { useRouter } from 'vue-router'
-import {getFolderFromID} from '@/firebase/firestore/notes'
+import { getFolderFromID } from '@/firebase/firestore/folderFunctions'
 export default defineComponent({
   name: 'HomePage',
   components: {
@@ -159,3 +159,5 @@ const closeSearchModal = () => {
   }
 }
 </style>
+import { getFolderFromID } from "@/firebase/firestore/getFolderFromID"
+@/firebase/firestore/folderFunctions@/firebase/firestore/noteFunctions

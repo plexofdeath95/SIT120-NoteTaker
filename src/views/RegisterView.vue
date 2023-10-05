@@ -3,7 +3,7 @@ import RegisterComponent from '@/components/RegisterComponent.vue';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-    name: 'LoginView',
+    name: 'RegisterView',
     components: {
         RegisterComponent
     }

@@ -1,19 +1,18 @@
 <script lang="ts">
 import { defineComponent, ref, type PropType, onBeforeMount, watch } from 'vue'
-import type { iFolder, iNote } from '../firebase/firestore/notes'
 import {
   generateID,
-  getFolderFromID,
   createNote,
   findNoteByID,
-  updateFolder,
   updateNote,
-  deleteNote
-} from '../firebase/firestore/notes'
+  deleteNote,
+  type iNote
+} from '../firebase/firestore/noteFunctions'
+
+import { getFolderFromID, updateFolder, type iFolder } from '@/firebase/firestore/folderFunctions'
 import type { iUser } from '@/firebase/firestore/users'
 
-import { FieldPath, Timestamp } from 'firebase/firestore'
-import { useFolderNotes } from '@/composables/useFolderNotes'
+import { Timestamp } from 'firebase/firestore'
 
 export default defineComponent({
   name: 'MainDisplay',
@@ -50,12 +49,12 @@ export default defineComponent({
       ? JSON.parse(localStorage.getItem('user') || '{}')
       : undefined
 
-      const isNoteSaved = ref(true);
+    const isNoteSaved = ref(true)
 
     // Watch for changes in noteTitle or noteContent
     watch([noteTitle, noteContent], () => {
-      isNoteSaved.value = false;
-    });
+      isNoteSaved.value = false
+    })
     onBeforeMount(async () => {
       if (props.note) {
         noteTitle.value = props.note.title
@@ -140,10 +139,10 @@ export default defineComponent({
           }
         }
       }
-      isNoteSaved.value = true;
+      isNoteSaved.value = true
     }
     const toggleSave = () => {
-      isNoteSaved.value = false;
+      isNoteSaved.value = false
     }
     async function deleteItem() {
       // Logic to delete the note
@@ -151,14 +150,13 @@ export default defineComponent({
       const user: iUser = JSON.parse(localStorage.getItem('user') || '{}')
       if (props.note) {
         const folder = await getFolderFromID(props.note.folder, user)
-        if (folder)
-        {
+        if (folder) {
           await deleteNote(noteID.value, folder, user)
           noteContent.value = ''
           noteTitle.value = ''
           noteID.value = generateID()
-          
-          currFolder.value = folder;
+
+          currFolder.value = folder
           noteData.value = {
             id: noteID.value,
             title: '',
@@ -211,7 +209,12 @@ export default defineComponent({
 
       <div class="note-textarea">
         <div class="line-numbers"></div>
-        <textarea class="note-content" v-model="noteContent" placeholder="Your note..." @input="toggleSave"></textarea>
+        <textarea
+          class="note-content"
+          v-model="noteContent"
+          placeholder="Your note..."
+          @input="toggleSave"
+        ></textarea>
       </div>
     </div>
   </div>
@@ -282,3 +285,6 @@ export default defineComponent({
   }
 }
 </style>
+import { getFolderFromID } from "@/firebase/firestore/getFolderFromID" import type { iFolder } from
+"@/firebase/firestore/iFolder"
+@/firebase/firestore/folderFunctions../firebase/firestore/noteFunctions../firebase/firestore/noteFunctions

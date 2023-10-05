@@ -1,59 +1,81 @@
+<script lang="ts">
+import { defineComponent, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { loginUser } from '@/firebase/Auth/AuthFunctions';
+
+export default defineComponent({
+  name: 'LoginComponent',
+  setup() {
+    const email = ref('');
+    const password = ref('');
+    const error = ref<string|null>(null);
+    const router = useRouter();
+    const isFading = ref(false);
+    const isLoading = ref(false);  // new ref for loading state
+
+    const handleLogin = async () => {
+      isLoading.value = true;  // set loading true at the beginning
+      const res = await loginUser(email.value, password.value);
+      isLoading.value = false;  // set loading false at the end
+      if (res.error) {
+        console.log(res.error);
+        error.value = res.error;
+      } else if (res.userFirebase?.emailVerified === false) {
+        error.value = "Please verify your email before logging in";
+      } else {
+        localStorage.setItem('user', JSON.stringify(res.user));
+        isFading.value = true;
+        setTimeout(() => {
+          router.push('/home');
+        }, 1000); 
+      }
+    };
+
+    return {
+      email,
+      password,
+      error,
+      handleLogin,
+      isFading,
+      isLoading  // return isLoading ref
+    };
+  }
+})
+</script>
+
 <template>
-  <div class="login-container">
-    <div class="logo-text">
-      <!-- Placeholder for logo. Replace with your logo's <img> tag -->
-      <div class="logo">
-        [LOGO]
+  <transition name="fade">
+    <div v-if="!isFading" class="login-container">
+      <div class="logo-text">
+        <!-- Placeholder for logo. Replace with your logo's <img> tag -->
+        <div class="logo">
+          <img src="../assets/logo.png" alt="Logo" class="imageLogo"/>
+          <h1>NoteTaker</h1>
+        </div>
+        <p>Welcome to NoteTaker, the app that helps you organize your thoughts</p>
       </div>
-      <p>Welcome to NoteTaker, the app that helps you organize your thoughts</p>
+      <h2>Login</h2>
+      <div v-if="error" class="message error">
+        {{ error }}
+      </div>
+      <form @submit.prevent="handleLogin">
+        <input type="email" v-model="email" placeholder="Email">
+        <input type="password" v-model="password" placeholder="Password">
+        <button type="submit">Login</button>
+      </form>
+      <p>
+        Don't have an account? <router-link to="/register">Register instead!</router-link>
+      </p>
     </div>
-    <h2>Login</h2>
-    <div v-if="error" class="message error">
-      {{ error }}
-    </div>
-    <form @submit.prevent="handleLogin">
-      <input type="email" v-model="email" placeholder="Email">
-      <input type="password" v-model="password" placeholder="Password">
-      <button type="submit">Login</button>
-    </form>
-    <p>
-      Don't have an account? <router-link to="/register">Register instead!</router-link>
-    </p>
+  </transition>
+  <div v-if="isLoading" class="loading-overlay">
+    <div class="loader"></div>  <!-- Loading icon -->
   </div>
 </template>
 
-<script lang="ts">
-import { loginUser } from '@/firebase/Auth/AuthFunctions';
-import { defineComponent, ref } from 'vue';
-import { useRouter } from 'vue-router';
-export default defineComponent({
- name: 'LoginComponent',
- setup()
- {
-    const email = ref('')
-    const password = ref('')
-    const error = ref<string|null> (null)
-    const router = useRouter()
-    const handleLogin = async () => {
-      const res = await loginUser(email.value, password.value)
-      if (res.error) {
-        console.log(res.error)
-        error.value = res.error
-      } else {
-        localStorage.setItem('user', JSON.stringify(res.user))
-        router.push('/home')
-      } 
-    }
 
-    return {
-        email,
-        password,
-        error,
-        handleLogin
-    }
- }
-})
-</script>
+
+
 
 <style scoped>
 .login-container {
@@ -69,9 +91,16 @@ export default defineComponent({
   margin-bottom: 20px;
 }
 
+.imageLogo {
+  width: 75px;
+  height: 75px;
+}
 .logo {
   font-size: 2em;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 form {
@@ -112,5 +141,40 @@ button:hover {
   border-color: #f5c6cb;
   max-width: 300px;
   text-align: center;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 1s;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--primary-bg); /* Semi-transparent primary color */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure overlay is on top of other content */
+}
+
+.loader {
+  border: 8px solid #f3f3f3; /* Light grey */
+  border-top: 8px solid var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 2s linear infinite;
+}
+
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

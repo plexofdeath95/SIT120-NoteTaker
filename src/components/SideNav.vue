@@ -1,8 +1,8 @@
 <script lang="ts">
 import { defineComponent, ref, watchEffect, type PropType, computed, onMounted } from 'vue'
 import FolderItem from '@/components/SideNav/FolderItem.vue' // Adjust the path accordingly
-import type { iFolder, iFolderNoteCollection, iNote } from '../firebase/firestore/notes'
-import { createFolder } from '../firebase/firestore/notes'
+import type {  iFolderNoteCollection, iNote } from '../firebase/firestore/noteFunctions'
+import { type iFolder, createFolder } from '@/firebase/firestore/folderFunctions'
 import type { iUser } from '@/firebase/firestore/users'
 import { useFolderNotes } from '@/composables/useFolderNotes'
 
@@ -239,3 +239,5 @@ ul {
   }
 }
 </style>
+import type { iFolder } from "@/firebase/firestore/iFolder"
+@/firebase/firestore/folderFunctions../firebase/firestore/noteFunctions

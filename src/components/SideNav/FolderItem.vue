@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, ref, type PropType, computed } from 'vue'
-import type { iFolder, iNote } from '../../firebase/firestore/notes'
+import type { iNote } from '../../firebase/firestore/noteFunctions'
+import type { iFolder } from '../../firebase/firestore/folderFunctions'
 import watch from 'vue'
 export default defineComponent({
   name: 'FolderItem',
@@ -134,3 +135,5 @@ export default defineComponent({
   opacity: 0;
 }
 </style>
+import type { iFolder } from "@/firebase/firestore/iFolder"
+../../firebase/firestore/folderFunctions../../firebase/firestore/noteFunctions

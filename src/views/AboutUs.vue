@@ -1,23 +1,27 @@
 <script setup lang="ts">
 import { ref, onBeforeMount } from 'vue';
-import { type iUser, readUsers } from '@/firebase/firestore/users';
+import { type iUser, readUsers, getUser } from '@/firebase/firestore/users';
 import NavBar from '@/components/NavBar.vue';
 import GoogleMapsInt from '@/components/GoogleMapsInt.vue';
+import { getCurrentUser } from '@/firebase/Auth/AuthFunctions';
 const showSideNav = ref(window.innerWidth > 768);
-const user = ref<iUser>();
+const user = ref<iUser>(      {
+        username: '',
+        email: '',
+        userID: ''
+      });
+
 
 onBeforeMount(async () => {
-  const users = await readUsers();
-  localStorage.setItem('user', JSON.stringify(users[0]));
-  if (users.length > 0) {
-    user.value = users[0];
-  } else {
-    const tempUser: iUser = {
-      username: '',
-      email: '',
-      userID: ''
-    };
-    user.value = tempUser;
+  const users = await getCurrentUser();
+
+  localStorage.setItem('user', JSON.stringify(users));
+  if(users) {
+    const userData = await getUser(users.userID);
+    if(userData) {
+      user.value = userData;
+    }
+
   }
 });
 </script>

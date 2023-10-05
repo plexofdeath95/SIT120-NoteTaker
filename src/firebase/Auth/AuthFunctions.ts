@@ -1,10 +1,11 @@
 import {auth} from '@/firebase/firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification  } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, type UserCredential, type User  } from 'firebase/auth';
 import type { iUser } from '../firestore/users';
 import { createUser, getUser } from '../firestore/users';
 
 export interface AuthUser {
     user?: iUser;
+    userFirebase?: User
     error?: string;
     errorCode?: AuthError;
 }
@@ -33,7 +34,7 @@ export const registerUser = async (email: string, password: string, userData:iUs
         userData.userID = user.uid;
         await createUser(userData);
         await sendEmailVerification(user);
-        const authUser = { user:userData, error: undefined };
+        const authUser = { user:userData, userFirebase:userCredential.user, error: undefined };
         return authUser;
     } catch (error:any) {
 
@@ -54,7 +55,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthUs
         const userVerified = user.emailVerified
         if (!userVerified) {
             await logoutUser();
-            const authUser = { user: undefined, error: 'User is not verified', errorCode: AuthError.USER_NOT_VERIFIED};
+            const authUser = { user: undefined, error: 'User is not verified, please check your email and verify your account', errorCode: AuthError.USER_NOT_VERIFIED};
             return authUser;
         }
         const userData = await getUser(user.uid);
@@ -63,7 +64,7 @@ export const loginUser = async (email: string, password: string): Promise<AuthUs
             return { user: undefined, error: 'User not found in database' };
         }
         localStorage.setItem('user', JSON.stringify(userData));
-        return { user: userData, error: undefined };
+        return { user: userData, userFirebase: userCredential.user, error: undefined };
     } catch (error:any) {
         const authUser = { user: undefined, error: error.message };
         return authUser;

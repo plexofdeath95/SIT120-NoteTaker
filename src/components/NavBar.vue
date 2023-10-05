@@ -5,7 +5,7 @@ import { RouterLink } from 'vue-router'
 import { logoutUser } from '@/firebase/Auth/AuthFunctions'
 import { useRouter } from 'vue-router'
 import { useFolderNotes } from '@/composables/useFolderNotes'
-import type { iNote } from '@/firebase/firestore/notes'
+import type { iNote } from '@/firebase/firestore/noteFunctions'
 export default defineComponent({
   name: 'NavBar',
   props: {
@@ -307,3 +307,4 @@ hr {
   }
 }
 </style>
+@/firebase/firestore/noteFunctions

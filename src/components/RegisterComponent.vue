@@ -35,6 +35,9 @@
         Already have an account? <router-link to="/">Login instead!</router-link>
       </p>
     </div>
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="loader"></div>  <!-- Loading icon -->
+    </div>
   </template>
   
   <script lang="ts">
@@ -51,12 +54,13 @@
         const confirmPassword = ref('')
         const error = ref<string|null> (null)
         const success = ref(false)
+        const isLoading = ref(false); 
         const confirmPasswordMatch = computed(() => {
             return password.value === confirmPassword.value
         })
 
         const handleRegister = async () => {
-
+          isLoading.value = true;  // set loading true at the beginning
         const user:iUser = {
             username: username.value,
             email: email.value,
@@ -64,6 +68,7 @@
         }
 
           const res = await registerUser(email.value, password.value, user)
+          isLoading.value = false;  // set loading false at the end
           if(res.error)
           {
             error.value = res.error
@@ -82,6 +87,7 @@
             confirmPasswordMatch,
             error,
             success,
+            isLoading,
             handleRegister
       }
     }
@@ -158,5 +164,32 @@
     justify-content: center;
 
   }
+
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 123, 255, 0.5); /* Semi-transparent primary color */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; /* Ensure overlay is on top of other content */
+}
+
+.loader {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #28a745; /* Primary color */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
   </style>
   
