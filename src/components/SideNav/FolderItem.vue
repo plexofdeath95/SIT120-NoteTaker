@@ -1,8 +1,8 @@
 <script lang="ts">
-import { defineComponent, ref, type PropType, computed } from 'vue'
+import { defineComponent, ref, type PropType } from 'vue'
 import type { iNote } from '../../firebase/firestore/noteFunctions'
 import type { iFolder } from '../../firebase/firestore/folderFunctions'
-import watch from 'vue'
+
 export default defineComponent({
   name: 'FolderItem',
   props: {
@@ -33,7 +33,7 @@ export default defineComponent({
     const noteData = ref(props.notes)
     const folderSelected = ref(false)
 
-    function toggleFolderIcon() {
+    const toggleFolderIcon = () => {
       folderOpen.value = !folderOpen.value
 
       const openedFolders = JSON.parse(localStorage.getItem('openedFolders') || '[]')
@@ -48,7 +48,7 @@ export default defineComponent({
       localStorage.setItem('openedFolders', JSON.stringify(openedFolders))
     }
 
-    function selectFolder() {
+    const selectFolder = () => {
       localStorage.setItem('selectedFolder', JSON.stringify(props.folder.id))
     }
 

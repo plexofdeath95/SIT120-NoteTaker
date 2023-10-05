@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { loginUser } from '@/firebase/Auth/AuthFunctions';
 
@@ -72,8 +72,6 @@ export default defineComponent({
     <div class="loader"></div>  <!-- Loading icon -->
   </div>
 </template>
-
-
 
 
 

@@ -28,7 +28,7 @@ export default defineComponent({
 
     const { folders, notes } = useFolderNotes(props.user)
 
-    function simpleFuzzySearch(query: string, notesRecord: Record<string, iNote[]>): iNote[] {
+    const simpleFuzzySearch = (query: string, notesRecord: Record<string, iNote[]>): iNote[] => {
       const lowercasedQuery = query.toLowerCase()
       let matchedNotes: iNote[] = []
 
@@ -46,7 +46,7 @@ export default defineComponent({
       return matchedNotes
     }
 
-    function performSearch() {
+    const performSearch = () =>{
       if (searchQuery.value) {
         searchResults.value = simpleFuzzySearch(searchQuery.value, notes.value)
       } else {
@@ -54,7 +54,7 @@ export default defineComponent({
       }
     }
 
-    function toggleSideNav() {
+    const toggleSideNav = () => {
       showSideNav.value = !showSideNav.value
     }
 

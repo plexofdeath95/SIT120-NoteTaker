@@ -3,7 +3,7 @@ import { ref, onBeforeMount, onMounted, onUnmounted, watchEffect, defineComponen
 import NavBar from '@/components/NavBar.vue'
 import SideNav from '@/components/SideNav.vue'
 import MainDisplay from '@/components/MainDisplay.vue'
-import { type iUser, readUsers, getUser } from '@/firebase/firestore/users'
+import { type iUser, getUser } from '@/firebase/firestore/users'
 import type { iNote } from '@/firebase/firestore/noteFunctions'
 import { getCurrentUser } from '@/firebase/Auth/AuthFunctions'
 import { useRouter } from 'vue-router'
@@ -34,11 +34,11 @@ export default defineComponent({
       console.log(showSideNav.value)
     }
     const openSearchModal = () => {
-    showSearchModal.value = true
-}
-const closeSearchModal = () => {
-    showSearchModal.value = false
-}
+      showSearchModal.value = true
+    }
+    const closeSearchModal = () => {
+      showSearchModal.value = false
+    }
 
     onMounted(() => {
       window.addEventListener('resize', resizeHandler)
@@ -61,9 +61,8 @@ const closeSearchModal = () => {
 
     const handleNoteSelect = async (note: iNote) => {
       selectedNote.value = note
-      if(user.value)
-      {
-         const res = await getFolderFromID(note.folder, user.value)
+      if (user.value) {
+        const res = await getFolderFromID(note.folder, user.value)
       }
       localStorage.setItem('selectedNote', JSON.stringify(note))
     }
@@ -109,25 +108,30 @@ const closeSearchModal = () => {
 <template>
   <div class="container" v-if="ready">
     <KeepAlive>
-    <NavBar :user="user" @showSearchModal="openSearchModal" @toggleSideNav="showSideNav = !showSideNav" @openNote="handleNoteSelect"/>
-  </KeepAlive>
+      <NavBar
+        :user="user"
+        @showSearchModal="openSearchModal"
+        @toggleSideNav="showSideNav = !showSideNav"
+        @openNote="handleNoteSelect"
+      />
+    </KeepAlive>
     <div class="main-layout" :class="{ 'hide-sidenav': !showSideNav }">
- 
-        <SideNav
-          v-if="showSideNav"
-          :class="{ show: showSideNav }"
-          :user="user"
-          @selectNote="handleNoteSelect"
-          @refreshMain="handleNoteSelect"
-          @rerender="rerenderView"
-        />
-     
-  
-      <MainDisplay v-if="!refreshMainView" :note="selectedNote" :user="user" @rerender="rerenderView" />
- 
+      <SideNav
+        v-if="showSideNav"
+        :class="{ show: showSideNav }"
+        :user="user"
+        @selectNote="handleNoteSelect"
+        @refreshMain="handleNoteSelect"
+        @rerender="rerenderView"
+      />
+
+      <MainDisplay
+        v-if="!refreshMainView"
+        :note="selectedNote"
+        :user="user"
+        @rerender="rerenderView"
+      />
     </div>
-
-
   </div>
 </template>
 

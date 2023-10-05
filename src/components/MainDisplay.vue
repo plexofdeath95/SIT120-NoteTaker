@@ -43,7 +43,7 @@ export default defineComponent({
       timestamp: Timestamp.now(),
       folder: ''
     })
-    const previousNoteData = ref<iNote | null>(noteData.value)
+  
 
     user.value = localStorage.getItem('user')
       ? JSON.parse(localStorage.getItem('user') || '{}')
@@ -70,7 +70,7 @@ export default defineComponent({
         noteID.value = generateID()
       }
     })
-    async function newNote() {
+   const newNote = async() => {
       // Logic to create a new note
       //get user from local storage
       noteID.value = generateID()
@@ -103,7 +103,7 @@ export default defineComponent({
         }
       }
     }
-    async function saveNote() {
+    const saveNote = async() => {
       // Logic to save the note
       //get user from local storage
       const user: iUser = JSON.parse(localStorage.getItem('user') || '{}')
@@ -144,7 +144,7 @@ export default defineComponent({
     const toggleSave = () => {
       isNoteSaved.value = false
     }
-    async function deleteItem() {
+    const deleteItem = async() => {
       // Logic to delete the note
 
       const user: iUser = JSON.parse(localStorage.getItem('user') || '{}')
