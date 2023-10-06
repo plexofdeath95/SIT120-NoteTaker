@@ -47,11 +47,11 @@ export default defineComponent({
   <transition name="fade">
     <div v-if="!isFading" class="login-container">
       <div class="logo-text">
-        <!-- Placeholder for logo. Replace with your logo's <img> tag -->
         <div class="logo">
           <img src="../assets/logo.png" alt="Logo" class="imageLogo"/>
-          <h1>NoteTaker</h1>
+          
         </div>
+        <h1>NoteTaker</h1>
         <p>Welcome to NoteTaker, the app that helps you organize your thoughts</p>
       </div>
       <h2>Login</h2>

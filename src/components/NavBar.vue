@@ -21,7 +21,7 @@ export default defineComponent({
   },
   setup(props, {emit}) {
     const searchQuery = ref('')
-    const showSideNav = ref(false)
+    const showSideNav = ref(true)
     const searchResults = ref<iNote[]>([])
 
     const router = useRouter()
@@ -278,6 +278,7 @@ hr {
 .search .modal {
   display: none;
 }
+
 @media (max-width: 768px) {
   .search {
     margin: 0;

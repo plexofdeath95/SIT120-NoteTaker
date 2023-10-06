@@ -42,9 +42,9 @@ export default defineComponent({
     <div class="landing-content">
       <div class="logo">
         <img src="../assets/logo.png" alt="Logo" class="imageLogo"/>
-        <h1 v-html="productNameText"></h1>
+        
       </div>
-      
+      <h1 v-html="productNameText"></h1>
       <p v-html="taglineText"></p>
     </div>
   </div>

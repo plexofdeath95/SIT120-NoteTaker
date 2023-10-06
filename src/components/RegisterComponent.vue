@@ -2,7 +2,8 @@
     <div class="register-container">
       <div class="logo-text">
         <div class="logo">
-          [LOGO]
+          <img src="../assets/logo.png" alt="Logo" class="imageLogo"/>
+          <h1>NoteTaker</h1>
         </div>
         <p>Welcome to NoteTaker, the app that helps you organize your thoughts</p>
       </div>
@@ -187,6 +188,10 @@
     animation: spin 2s linear infinite;
 }
 
+.imageLogo {
+  width: 100px;
+  height: 100px;
+}
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
