@@ -23,6 +23,29 @@ export enum AuthError {
 }
 
 
+const matchAndFormatErrorCode = (errorCode: string): string => {
+    switch (errorCode) {
+        case AuthError.EMAIL_EXISTS:
+            return 'Email already exists';
+        case AuthError.INVALID_EMAIL:
+            return 'Invalid email';
+        case AuthError.USER_NOT_VERIFIED:
+            return 'User not verified';
+        case AuthError.OPERATION_NOT_ALLOWED:
+            return 'Operation not allowed';
+        case AuthError.WEAK_PASSWORD:
+            return 'Weak password';
+        case AuthError.USER_DISABLED:
+            return 'User disabled';
+        case AuthError.USER_NOT_FOUND:
+            return 'User not found';
+        case AuthError.WRONG_PASSWORD:
+            return 'Wrong password';
+        default:
+            return 'Unknown error';
+    }
+}
+
 // registerUser function
 // This function takes in an email and password and creates a new user in Firebase Authentication.
 // It returns a promise that resolves with the user object.
@@ -37,8 +60,8 @@ export const registerUser = async (email: string, password: string, userData:iUs
         const authUser = { user:userData, userFirebase:userCredential.user, error: undefined };
         return authUser;
     } catch (error:any) {
-
-        const authUser = { user: undefined, error: error.message };
+        const formattedError = matchAndFormatErrorCode(error.code);
+        const authUser = { user: undefined, error: formattedError, errorCode: error.code };
         return authUser;
     }
 };

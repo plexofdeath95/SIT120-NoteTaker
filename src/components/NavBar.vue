@@ -95,8 +95,8 @@ export default defineComponent({
         <button class="hamburger-button" @click="$emit('toggleSideNav')" v-if="!hideHam">
           <span class="material-icons">menu</span>
         </button>
-        <div v-if="showSideNav">
-          <RouterLink to="/">Home</RouterLink>
+        <div>
+          <RouterLink to="/Home">Home</RouterLink>
           <RouterLink to="/about">About</RouterLink>
         </div>
       </div>
@@ -154,7 +154,6 @@ nav {
 }
 
 .left-actions > div {
-  display: none; /* Hidden by default on mobile */
   flex-direction: column;
   align-items: flex-start;
 }
@@ -294,6 +293,10 @@ hr {
   .left-actions > RouterLink {
     display: none;
   }
+  .left-actions > div {
+    display: none;
+}
+
   .user {
     display: none;
   }

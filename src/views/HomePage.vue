@@ -163,5 +163,4 @@ export default defineComponent({
   }
 }
 </style>
-import { getFolderFromID } from "@/firebase/firestore/getFolderFromID"
-@/firebase/firestore/folderFunctions@/firebase/firestore/noteFunctions
+
